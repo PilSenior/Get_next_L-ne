@@ -31,7 +31,7 @@ char	*line_after_new_line(char *s, char c)
 	}
 	str = (char *)malloc((ft_strlen(s) - i) + 1);
 	if (!str)
-		return (NULL);
+		return (free(s),NULL);
 	i++;
 	while (s[i])
 		str[j++] = s[i++];
@@ -46,7 +46,7 @@ char	*line_before_new_line(char *s, char c)
 	int		i;
 
 	i = 0;
-	if (!s[i])
+	if (!s || !s[i])
 		return (NULL);
 	while (s[i] != '\0' && s[i] != c)
 		i++;
@@ -82,13 +82,17 @@ char	*find_next_line(int fd, char *s)
 		i = read(fd, str, BUFFER_SIZE);
 		if (i == -1)
 		{
+			free(s);
 			free(str);
 			return (NULL);
 		}
 		str[i] = '\0';
 		s = ft_strjoin(s, str);
+		if(!s)
+			return(free(str),NULL);
 	}
 	free(str);
+	str = NULL;
 	return (s);
 }
 
@@ -100,8 +104,11 @@ char	*get_next_line(int fd)
 	if (fd < 0 || BUFFER_SIZE <= 0)
 		return (NULL);
 	line = find_next_line(fd, line);
-	if (line)
+	if(!line)
 	{
+		free(line);
+		return (NULL);
+	}
 		str = line_before_new_line(line, '\n');
 		if (!str)
 		{
@@ -111,21 +118,4 @@ char	*get_next_line(int fd)
 		}
 		line = line_after_new_line(line, '\n');
 		return (str);
-	}
-	return (NULL);
-}
-
-int	main(void)
-{
-	int		fd;
-	char	*b;
-
-	fd = open("asd.text", O_RDONLY);
-	while ((b = get_next_line(fd)) != NULL)
-	{
-		printf("%s", b);
-		free(b);
-	}
-	close(fd);
-	return (0);
 }
